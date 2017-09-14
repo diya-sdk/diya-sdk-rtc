@@ -1,0 +1,30 @@
+{
+  "name": "diya-sdk-rtc",
+  "version": "0.8.0",
+  "homepage": "https://github.com/diya-sdk/diya-sdk-rtc",
+  "authors": [
+    "Sylvain Mahé <sylv.mahe@gmail.com>"
+  ],
+  "description": "SDK rtc for accessing Diya One rtc service",
+  "main": "build/rtc.min.js",
+  "keywords": [
+    "Diya",
+    "One",
+    "Partnering",
+    "SDK"
+  ],
+  "license": "LGPL v3",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "package.json"
+  ],
+  "dependencies": {
+    "q": "1.4"
+  }
+}
