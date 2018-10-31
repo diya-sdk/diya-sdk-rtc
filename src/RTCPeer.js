@@ -32,6 +32,7 @@ class RTCPeer extends EventEmitter {
 			return
 		}
 		this._peerConnection.close()
+		this._peerConnection = null
 	}
 
 	_connect () {
