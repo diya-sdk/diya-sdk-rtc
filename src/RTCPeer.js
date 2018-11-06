@@ -24,15 +24,17 @@ class RTCPeer extends EventEmitter {
 			func: 'Close'
 		})
 
-		setTimeout(() => {
-			this._disconnectSignaling ()
-		})
-
 		if (this._peerConnection == null) {
 			return
 		}
 		this._peerConnection.close()
-		this._peerConnection = null
+
+		setTimeout(() => {
+			this._disconnectSignaling ()
+
+			// just in case garbage collector needs some help
+			this._peerConnection = null
+		})
 	}
 
 	_connect () {
@@ -51,11 +53,18 @@ class RTCPeer extends EventEmitter {
 			channels: this.channels.map (c => c.name)
 		}, (_, err, sessionToken) => {
 			console.log("session token for peer "+this.id+" : "+sessionToken)
-			this._dbusObject._d1inst(this._dbusObject._peerId).openSocket('/var/run/diya/rtc.sock', (_, err, socket) => {
-				socket.write(`${sessionToken}\n`)
-
-				this._onSignalingConnected(messageify(socket))
-			})
+			this._dbusObject._d1inst(this._dbusObject._peerId)
+				.openSocket('/var/run/diya/rtc.sock', (_, err, socket) => {
+					if (err != null) {
+						console.error(err)
+					}
+					if (socket != null) {
+						socket.write(`${sessionToken}\n`)
+						this._onSignalingConnected(messageify(socket))
+					} else {
+						console.warn("No socket! Could not connect!")
+					}
+				})
 		})
 	}
 
@@ -75,7 +84,11 @@ class RTCPeer extends EventEmitter {
 
 	_sendSignalingMessage (message) {
 		let data = JSON.stringify (message)
-		this._signaling.sendMessage (data)
+		if (this._signaling != null) {
+			this._signaling.sendMessage (data)
+		} else {
+			console.error("No _signaling")
+		}
 	}
 
 	_onSignalingMessage (message) {
@@ -150,6 +163,9 @@ class RTCPeer extends EventEmitter {
 
 
 	_onLocalSDP (localSDP) {
+		if (this._peerConnection == null) {
+			return
+		}
 		this._peerConnection.setLocalDescription(localSDP);
 
 		this._sendSignalingMessage({
@@ -167,12 +183,18 @@ class RTCPeer extends EventEmitter {
 	}
 
 	_onICEConnectionStateChange () {
-		console.log("ICE connection state : " + this._peerConnection.iceConnectionState)
+		if (this._peerConnection == null) {
+			console.warn("ICE connection state : no peerConnection!")
+		} else {
+			console.log("ICE connection state : "
+			            + this._peerConnection.iceConnectionState)
+		}
 		/*if(peer.iceConnectionState === 'connected'){
 			that.connected = true;
 			if(that.subscription) that.subscription.close();
 		}
-		else if(peer.iceConnectionState === 'disconnected' || peer.iceConnectionState === 'closed' || peer.iceConnectionState === 'failed'){
+		else if(peer.iceConnectionState === 'disconnected'
+		|| peer.iceConnectionState === 'closed' || peer.iceConnectionState === 'failed'){
 			if(!that.closed) that._reconnect();
 		}*/
 	}
