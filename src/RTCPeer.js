@@ -1,5 +1,6 @@
 const EventEmitter = require('node-event-emitter')
 const messageify = require('./messageify-browser.js')
+const debug = require('debug')('rtc:peer');
 
 class RTCPeer extends EventEmitter {
 	constructor (id, channels, dbusObject) {
@@ -84,10 +85,15 @@ class RTCPeer extends EventEmitter {
 
 	_sendSignalingMessage (message) {
 		let data = JSON.stringify (message)
-		if (this._signaling != null) {
-			this._signaling.sendMessage (data)
-		} else {
-			console.error("No _signaling")
+		try {
+			if (this._signaling != null) {
+				this._signaling.sendMessage (data)
+			} else {
+				console.error("No _signaling")
+			}
+		} catch (err) {
+			console.error("RTC: SendSignalMessage failed")
+			debug(err)
 		}
 	}
 
