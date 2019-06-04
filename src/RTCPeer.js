@@ -21,9 +21,15 @@ class RTCPeer extends EventEmitter {
 		this.channels = []
 
 
-		this._sendSignalingMessage ({
-			func: 'Close'
-		})
+		try {
+			this._sendSignalingMessage ({
+				func: 'Close'
+			})
+		} catch (err) {
+			console.warn("RTC: 'close' signaling failed")
+			debug(err)
+		}
+
 
 		if (this._peerConnection == null) {
 			return
@@ -85,15 +91,10 @@ class RTCPeer extends EventEmitter {
 
 	_sendSignalingMessage (message) {
 		let data = JSON.stringify (message)
-		try {
-			if (this._signaling != null) {
-				this._signaling.sendMessage (data)
-			} else {
-				console.error("No _signaling")
-			}
-		} catch (err) {
-			console.error("RTC: SendSignalMessage failed")
-			debug(err)
+		if (this._signaling != null) {
+			this._signaling.sendMessage (data)
+		} else {
+			console.error("No _signaling")
 		}
 	}
 
@@ -195,14 +196,6 @@ class RTCPeer extends EventEmitter {
 			console.log("ICE connection state : "
 			            + this._peerConnection.iceConnectionState)
 		}
-		/*if(peer.iceConnectionState === 'connected'){
-			that.connected = true;
-			if(that.subscription) that.subscription.close();
-		}
-		else if(peer.iceConnectionState === 'disconnected'
-		|| peer.iceConnectionState === 'closed' || peer.iceConnectionState === 'failed'){
-			if(!that.closed) that._reconnect();
-		}*/
 	}
 
 	_onDataChannel (evt) {
