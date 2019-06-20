@@ -1,5 +1,6 @@
 const EventEmitter = require('node-event-emitter')
 const messageify = require('./messageify-browser.js')
+const debug = require('debug')('rtc:peer');
 
 class RTCPeer extends EventEmitter {
 	constructor (id, channels, dbusObject) {
@@ -20,9 +21,15 @@ class RTCPeer extends EventEmitter {
 		this.channels = []
 
 
-		this._sendSignalingMessage ({
-			func: 'Close'
-		})
+		try {
+			this._sendSignalingMessage ({
+				func: 'Close'
+			})
+		} catch (err) {
+			console.warn("RTC: 'close' signaling failed")
+			debug(err)
+		}
+
 
 		if (this._peerConnection == null) {
 			return
@@ -189,14 +196,6 @@ class RTCPeer extends EventEmitter {
 			console.log("ICE connection state : "
 			            + this._peerConnection.iceConnectionState)
 		}
-		/*if(peer.iceConnectionState === 'connected'){
-			that.connected = true;
-			if(that.subscription) that.subscription.close();
-		}
-		else if(peer.iceConnectionState === 'disconnected'
-		|| peer.iceConnectionState === 'closed' || peer.iceConnectionState === 'failed'){
-			if(!that.closed) that._reconnect();
-		}*/
 	}
 
 	_onDataChannel (evt) {
